@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/5.3/engine/Shopware/Components/Plugin/schema/plugin.xsd">
+    <label lang="de">Dateifabrik Prüfung der Nummernkreise</label>
+    <label lang="en">Dateifabrik P24 Check Number Range</label>
+
+    <version>0.0.1</version>
+    <copyright>Dateifabrik</copyright>
+    <license>MIT</license>
+    <link>https://dateifabrik.de</link>
+    <author>Dateifabrik</author>
+    <compatibility minVersion="5.7.11"/>
+
+    <changelog version="0.0.1">
+        <changes lang="de">Erste Version</changes>
+        <changes lang="en">First version</changes>
+    </changelog>
+</plugin>
