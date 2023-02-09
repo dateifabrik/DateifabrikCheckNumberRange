@@ -27,10 +27,10 @@ class CheckNumbers implements SubscriberInterface
         //// datenbank nach neuester ordernumber fragen
         //// in datei schreiben        
         $pathToFile = __DIR__ . "/alive.txt";
-        $lastOrdernNumberInFile = $this->getLastOrderNumbers()[0]['number'];
-        
+
+
         if (!file_exists($pathToFile)) {
-            $this->writeLastOrderNumberToFile($lastOrdernNumberInFile);
+            $this->writeLastOrderNumberToFile($this->getLastOrderNumbers()[0]['number']);
         }
         else{
             $lastOrdernNumberInFile = file_get_contents($pathToFile);
@@ -95,9 +95,12 @@ class CheckNumbers implements SubscriberInterface
     }
 
     public function sendInfoMail(){
+        
         foreach ($this->getLastOrderNumbers() as $item) {
             $numbers[] = $item['number'];
         }
+
+        die(print_r($numbers));
 
         if (count(array_unique($numbers)) != 1) {
 
@@ -125,7 +128,7 @@ class CheckNumbers implements SubscriberInterface
                 'port' => 465,
             ]);
 
-            $mail->send($transport);
+            //$mail->send($transport);
         }
     }    
 
