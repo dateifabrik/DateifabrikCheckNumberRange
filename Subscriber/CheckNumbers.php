@@ -9,7 +9,7 @@ use Zend_Mail_Transport_Smtp;
 class CheckNumbers implements SubscriberInterface
 {
 
-
+    public $pathToFile = __DIR__ . "/alive.txt";
 
     public static function getSubscribedEvents()
     {
@@ -22,20 +22,21 @@ class CheckNumbers implements SubscriberInterface
     public function checkNumberRange()
     {
 
+
         // datei vorhanden?
         // nein:
         //// datenbank nach neuester ordernumber fragen
         //// in datei schreiben        
-        $pathToFile = __DIR__ . "/alive.txt";
 
 
-        if (!file_exists($pathToFile)) {
+
+        if (!file_exists($this->pathToFile)) {
             $this->writeLastOrderNumberToFile($this->getLastOrderNumbers()[0]['number']);
-        }
-        else{
-            $lastOrdernNumberInFile = file_get_contents($pathToFile);
+        } else {
+            $lastOrderNumberInFile = file_get_contents($this->pathToFile);
             $lastOrderNumberInDatabase = $this->getLastOrderNumbers()[0]['number'];
-            if($lastOrdernNumberInFile !=  $lastOrderNumberInDatabase){
+            print_r($lastOrderNumberInFile . PHP_EOL . $lastOrderNumberInDatabase . PHP_EOL);
+            if ($lastOrderNumberInFile != $lastOrderNumberInDatabase) {
                 $this->writeLastOrderNumberToFile($lastOrderNumberInDatabase);
                 $this->sendInfoMail();
             }
@@ -88,24 +89,24 @@ class CheckNumbers implements SubscriberInterface
 
     }
 
-    public function writeLastOrderNumberToFile($lastNumber){
-        $file = fopen($pathToFile, "w");
+    public function writeLastOrderNumberToFile($lastNumber)
+    {
+        $file = fopen($this->pathToFile, "w");
         fwrite($file, $lastNumber);
         fclose($file);
     }
 
-    public function sendInfoMail(){
-        
+    public function sendInfoMail()
+    {
+
         foreach ($this->getLastOrderNumbers() as $item) {
             $numbers[] = $item['number'];
         }
 
-        die(print_r($numbers));
-
         if (count(array_unique($numbers)) != 1) {
 
             $wrongData = "\r\n\r\n";
-            foreach ($data as $d) {
+            foreach ($this->getLastOrderNumbers() as $d) {
                 $wrongData .= $d['description'] . " => " . $d['number'] . "\n";
             }
 
@@ -130,7 +131,5 @@ class CheckNumbers implements SubscriberInterface
 
             //$mail->send($transport);
         }
-    }    
-
-
+    }
 }
