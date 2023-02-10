@@ -19,47 +19,30 @@ class CheckNumbers implements SubscriberInterface
         ];
     }
 
-    public function checkNumberRange()
-    {
 
-
-        // datei vorhanden?
-        // nein:
-        //// datenbank nach neuester ordernumber fragen
-        //// in datei schreiben        
-
-
-
-        if (!file_exists($this->pathToFile)) {
-            $this->writeLastOrderNumberToFile($this->getLastOrderNumbers()[0]['number']);
-        } else {
-            $lastOrderNumberInFile = file_get_contents($this->pathToFile);
-            $lastOrderNumberInDatabase = $this->getLastOrderNumbers()[0]['number'];
-            print_r($lastOrderNumberInFile . PHP_EOL . $lastOrderNumberInDatabase . PHP_EOL);
-            if ($lastOrderNumberInFile != $lastOrderNumberInDatabase) {
-                $this->writeLastOrderNumberToFile($lastOrderNumberInDatabase);
-                $this->sendInfoMail();
-            }
+    public function checkNumberRange(){
+        $meinArray = array(79625,79625,79625,79625);
+        //var_dump($meinArray);
+        $dbNumbersArray = $this->getLastOrderNumbers();
+        foreach($dbNumbersArray as $db){
+            $dbArray[] = $db['number'];
         }
+        // var_dump($dbArray);
+        // var_dump($dbArray[0]);
+        // var_dump($dbArray[1]);
+        // var_dump($dbArray[2]);
+        // var_dump($dbArray[3]);
+        // var_dump(count($dbArray));
+
+        print_r(array_diff(array_unique($dbArray), $meinArray));
+
+        // $bla = array_diff($dbArray, $meinArray);
+        // print_r(array_diff(array_unique($bla), $meinArray));
 
 
-
-        // ja:
-        // ordernumber aus datei holen
-        // datenbank nach neuester ordernumber fragen ---> funktion nach ordernumber fragen
-        // bei zahlen vergleichen
-        // sind gleich:
-        // nichts tun
-        // sind unterschiedlich:
-        // neue ordernumber in dadatei schreiben ---> funktion in datei schreiben
-        // E-Mail schicken
-
-
-
-
-
-
+        //var_dump(array_diff($dbArray, $meinArray));
     }
+
 
 
     public function getLastOrderNumbers()
@@ -67,7 +50,7 @@ class CheckNumbers implements SubscriberInterface
 
         // get the last numbers from the database
         $builder = Shopware()->Models()->createQueryBuilder();
-        $data = $builder->select('orderNumber')
+        $data = $builder->select('orderNumber.number')
             ->from('Shopware\Models\Order\Number', 'orderNumber')
             ->where('orderNumber.id BETWEEN :fromId AND :toId')
             ->setParameter('fromId', 920)
@@ -88,48 +71,6 @@ class CheckNumbers implements SubscriberInterface
         // +-----+--------+---------+---------------+
 
     }
-
-    public function writeLastOrderNumberToFile($lastNumber)
-    {
-        $file = fopen($this->pathToFile, "w");
-        fwrite($file, $lastNumber);
-        fclose($file);
-    }
-
-    public function sendInfoMail()
-    {
-
-        foreach ($this->getLastOrderNumbers() as $item) {
-            $numbers[] = $item['number'];
-        }
-
-        if (count(array_unique($numbers)) != 1) {
-
-            $wrongData = "\r\n\r\n";
-            foreach ($this->getLastOrderNumbers() as $d) {
-                $wrongData .= $d['description'] . " => " . $d['number'] . "\n";
-            }
-
-            $mail = new Zend_Mail();
-            $mail->setFrom('noreply@packing24.de', 'DateifabrikCheckNumberRange Plugin')
-                ->addTo('jaeger@packing24.de', 'Packing24')
-                // ->addBcc([
-                //     'jaeger@packing24.de',
-                //     'bruse@packing24.de',
-                // ])
-                ->setSubject('Achtung, Nummerkreise verschoben ' . date("H:i:s", time()) . " Uhr")
-                ->setBodyText('Die Nummernkreise sind verschoben. ' . $wrongData);
-
-
-            $transport = new Zend_Mail_Transport_Smtp('packing24s2.timmeserver.de', [
-                'auth' => 'login',
-                'username' => 'dateifabrikchecknumberrange@packing24.de',
-                'password' => 'oopa7aa8rah4Eija',
-                'ssl' => 'ssl',
-                'port' => 465,
-            ]);
-
-            //$mail->send($transport);
-        }
-    }
+    
+    
 }
