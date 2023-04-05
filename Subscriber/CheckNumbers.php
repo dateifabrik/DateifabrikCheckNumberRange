@@ -60,8 +60,8 @@ class CheckNumbers implements SubscriberInterface
             $mail->setFrom('noreply@packing24.de', 'DateifabrikCheckNumberRange Plugin')
                 ->addTo('info@packing24.de', 'Packing24')
                 ->addBcc([
-                    'jaeger@packing24.de',
-                    'bruse@packing24.de',
+                    'email1@email.email',
+                    'email2@email.email',
                 ])
                 ->setSubject('Achtung, Nummerkreise verschoben ' . date("H:i:s", time()). " Uhr")
                 ->setBodyText('Die Nummernkreise sind verschoben. ' . $wrongData);
@@ -69,8 +69,8 @@ class CheckNumbers implements SubscriberInterface
 
             $transport = new Zend_Mail_Transport_Smtp('packing24s2.timmeserver.de', [
                 'auth' => 'login',
-                'username' => 'dateifabrikchecknumberrange@packing24.de',
-                'password' => 'oopa7aa8rah4Eija',
+                'username' => 'USERNAME',
+                'password' => 'PASSWORD',
                 'ssl' => 'ssl',
                 'port' => 465,
             ]);
