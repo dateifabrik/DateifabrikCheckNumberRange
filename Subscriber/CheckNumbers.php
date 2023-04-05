@@ -8,57 +8,32 @@ use Zend_Mail_Transport_Smtp;
 
 class CheckNumbers implements SubscriberInterface
 {
-
-    public $pathToFile = __DIR__ . "/alive.txt";
-
     public static function getSubscribedEvents()
     {
         return [
-            'Shopware_CronJob_ExtDocumentCreate' => 'checkNumberRange',
-            #'Shopware_CronJob_SwagBonusSystemCron' => 'checkNumberRange',
+            #'Shopware_CronJob_ExtDocumentCreate' => 'checkNumberRange',
+            'Shopware_CronJob_SwagBonusSystemCron' => 'checkNumberRange',
         ];
     }
 
-
-    public function checkNumberRange(){
-        $meinArray = array(79625,79625,79625,79625);
-        //var_dump($meinArray);
-        $dbNumbersArray = $this->getLastOrderNumbers();
-        foreach($dbNumbersArray as $db){
-            $dbArray[] = $db['number'];
-        }
-        // var_dump($dbArray);
-        // var_dump($dbArray[0]);
-        // var_dump($dbArray[1]);
-        // var_dump($dbArray[2]);
-        // var_dump($dbArray[3]);
-        // var_dump(count($dbArray));
-
-        print_r(array_diff(array_unique($dbArray), $meinArray));
-
-        // $bla = array_diff($dbArray, $meinArray);
-        // print_r(array_diff(array_unique($bla), $meinArray));
-
-
-        //var_dump(array_diff($dbArray, $meinArray));
-    }
-
-
-
-    public function getLastOrderNumbers()
+    public function checkNumberRange()
     {
+
+        // write control file
+        $pathToFile = __DIR__ . "/alive.txt";
+        $file = fopen($pathToFile, "w");
+        fwrite($file, date("H:i:s d.m.Y", time()));
+        fclose($file);
 
         // get the last numbers from the database
         $builder = Shopware()->Models()->createQueryBuilder();
-        $data = $builder->select('orderNumber.number')
+        $data = $builder->select('orderNumber')
             ->from('Shopware\Models\Order\Number', 'orderNumber')
             ->where('orderNumber.id BETWEEN :fromId AND :toId')
             ->setParameter('fromId', 920)
             ->setParameter('toId', 924)
             ->getQuery()
             ->getArrayResult();
-
-        return $data;
 
         // we need only the 'number' from the array
         // +-----+--------+---------+---------------+
@@ -70,7 +45,39 @@ class CheckNumbers implements SubscriberInterface
         // | 924 |  85879 | doc_0   | Rechnungen    |
         // +-----+--------+---------+---------------+
 
+        foreach ($data as $item) {
+            $numbers[] = $item['number'];
+        }
+
+        if(count(array_unique($numbers)) != 1){
+
+            $wrongData = "\r\n\r\n";
+            foreach ($data as $d) {
+                $wrongData .= $d['description'] . " => " . $d['number'] . "\n";
+            }
+
+            $mail = new Zend_Mail();
+            $mail->setFrom('noreply@packing24.de', 'DateifabrikCheckNumberRange Plugin')
+                ->addTo('info@packing24.de', 'Packing24')
+                ->addBcc([
+                    'jaeger@packing24.de',
+                    'bruse@packing24.de',
+                ])
+                ->setSubject('Achtung, Nummerkreise verschoben ' . date("H:i:s", time()). " Uhr")
+                ->setBodyText('Die Nummernkreise sind verschoben. ' . $wrongData);
+
+
+            $transport = new Zend_Mail_Transport_Smtp('packing24s2.timmeserver.de', [
+                'auth' => 'login',
+                'username' => 'dateifabrikchecknumberrange@packing24.de',
+                'password' => 'oopa7aa8rah4Eija',
+                'ssl' => 'ssl',
+                'port' => 465,
+            ]);
+
+            $mail->send($transport);
+
+        }
+
     }
-    
-    
 }
